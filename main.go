@@ -26,7 +26,7 @@ type config struct {
 		} `yaml:"topics"`
 	} `yaml:"kafka"`
 	Email struct {
-		FromAddress string `yaml:"sendAddress"`
+		FromAddress string `yaml:"fromAddress"`
 		FromName    string `yaml:"fromName"`
 	} `yaml:"email"`
 	SendGrid struct {
@@ -72,13 +72,15 @@ func main() {
 	}
 	defer consumer.Close()
 	logger.Info("successfully connected to Kafka")
-	
+
 	ch := make(chan *sarama.ConsumerMessage, len(cfg.Kafka.Topics))
 	for _, topic := range cfg.Kafka.Topics {
 		pc, err := consumer.ConsumePartition(topic.Name, topic.PartitionID, sarama.OffsetOldest)
 		if err != nil {
 			panic(err.Error())
 		}
+
+		logger.Info("subscribed to topic " + topic.Name)
 
 		go func(pc sarama.PartitionConsumer) {
 			for {
